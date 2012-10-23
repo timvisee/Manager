@@ -26,9 +26,9 @@ import de.bananaco.bpermissions.api.util.CalculableType;
 
 public class PermissionsManager {
 	
-	private PermissionsManagerPermissionsSystemType permsType = PermissionsManagerPermissionsSystemType.NONE;
+	private PermissionsSystemType permsType = PermissionsSystemType.NONE;
 	private Server s;
-	private String logPrefix;
+	private Plugin p;
 	
 	// Permissions Ex
 	private PermissionManager pexPerms;
@@ -47,16 +47,16 @@ public class PermissionsManager {
 	 * @param s server
 	 * @param logPrefix log prefix (plugin name)
 	 */
-	public PermissionsManager(Server s, String logPrefix) {
+	public PermissionsManager(Server s, Plugin p) {
 		this.s = s;
-		this.logPrefix = logPrefix;
+		this.p = p;
 	}
 	
 	/**
 	 * Return the permissions system where the permissions manager is currently hooked into
 	 * @return permissions system type
 	 */
-	public PermissionsManagerPermissionsSystemType getUsedPermissionsSystemType() {
+	public PermissionsSystemType getUsedPermissionsSystemType() {
 		return this.permsType;
 	}
 	
@@ -65,55 +65,55 @@ public class PermissionsManager {
 	 * @return false if there isn't any permissions system used
 	 */
 	public boolean isEnabled() {
-		return !permsType.equals(PermissionsManagerPermissionsSystemType.NONE);
+		return !permsType.equals(PermissionsSystemType.NONE);
 	}
 	
 	/**
 	 * Setup and hook into the permissions systems
 	 * @return the detected permissions system
 	 */
-	public PermissionsManagerPermissionsSystemType setup() {
+	public PermissionsSystemType setup() {
 		// Define the plugin manager
 		final PluginManager pm = this.s.getPluginManager();
 		
 		// Reset used permissions system type
-		permsType = PermissionsManagerPermissionsSystemType.NONE;
+		permsType = PermissionsSystemType.NONE;
 		
 		// Check if PermissionsEx is available
 		Plugin pex = pm.getPlugin("PermissionsEx");
 		if(pex != null) {
 			pexPerms = PermissionsEx.getPermissionManager();
 			if(pexPerms != null) {
-				permsType = PermissionsManagerPermissionsSystemType.PERMISSIONS_EX;
+				permsType = PermissionsSystemType.PERMISSIONS_EX;
 				
-				System.out.println("[" + logPrefix + "] Hooked into PermissionsEx!");
-				return PermissionsManagerPermissionsSystemType.PERMISSIONS_EX;
+				System.out.println("[" + p.getName() + "] Hooked into PermissionsEx!");
+				return PermissionsSystemType.PERMISSIONS_EX;
 			}
 		}
 		
 		// Check if PermissionsBukkit is available
 		Plugin bukkitPerms = pm.getPlugin("PermissionsBukkit");
 		if(bukkitPerms != null) {
-			permsType = PermissionsManagerPermissionsSystemType.PERMISSIONS_BUKKIT;
-			System.out.println("[" + logPrefix + "] Hooked into PermissionsBukkit!");
-			return PermissionsManagerPermissionsSystemType.PERMISSIONS_BUKKIT;
+			permsType = PermissionsSystemType.PERMISSIONS_BUKKIT;
+			System.out.println("[" + p.getName() + "] Hooked into PermissionsBukkit!");
+			return PermissionsSystemType.PERMISSIONS_BUKKIT;
 		}
 		
 		// Check if bPermissions is available
 		Plugin testBPermissions = pm.getPlugin("bPermissions");
 		if(testBPermissions != null) {
-			permsType = PermissionsManagerPermissionsSystemType.B_PERMISSIONS;
-			System.out.println("[" + logPrefix + "] Hooked into bPermissions!");
-			return PermissionsManagerPermissionsSystemType.B_PERMISSIONS;
+			permsType = PermissionsSystemType.B_PERMISSIONS;
+			System.out.println("[" + p.getName() + "] Hooked into bPermissions!");
+			return PermissionsSystemType.B_PERMISSIONS;
 		}
 		
 		// Check if Essentials Group Manager is available
 		final Plugin GMplugin = pm.getPlugin("GroupManager");
 		if (GMplugin != null && GMplugin.isEnabled()) {
-			permsType = PermissionsManagerPermissionsSystemType.ESSENTIALS_GROUP_MANAGER;
+			permsType = PermissionsSystemType.ESSENTIALS_GROUP_MANAGER;
 			groupManagerPerms = (GroupManager)GMplugin;
-            System.out.println("[" + logPrefix + "] Hooked into Essentials Group Manager!");
-            return PermissionsManagerPermissionsSystemType.ESSENTIALS_GROUP_MANAGER;
+            System.out.println("[" + p.getName() + "] Hooked into Essentials Group Manager!");
+            return PermissionsSystemType.ESSENTIALS_GROUP_MANAGER;
 		}
 		
 		// VAULT PERMISSIONS
@@ -123,11 +123,11 @@ public class PermissionsManager {
 	        if (permissionProvider != null) {
 	            vaultPerms = permissionProvider.getProvider();
 	            if(vaultPerms.isEnabled()) {
-	            	permsType = PermissionsManagerPermissionsSystemType.VAULT;
-	            	System.out.println("[" + logPrefix + "] Hooked into Vault Permissions!");
-	    		    return PermissionsManagerPermissionsSystemType.VAULT;
+	            	permsType = PermissionsSystemType.VAULT;
+	            	System.out.println("[" + p.getName() + "] Hooked into Vault Permissions!");
+	    		    return PermissionsSystemType.VAULT;
 	            } else {
-	            	System.out.println("[" + logPrefix + "] Not using Vault Permissions, Vault Permissions is disabled!");
+	            	System.out.println("[" + p.getName() + "] Not using Vault Permissions, Vault Permissions is disabled!");
 	            }
 	        }
 		}
@@ -135,17 +135,17 @@ public class PermissionsManager {
 		// Check if Permissions is available
 	    Plugin testPerms = pm.getPlugin("Permissions");
         if (testPerms != null) {
-        	permsType = PermissionsManagerPermissionsSystemType.PERMISSIONS;
+        	permsType = PermissionsSystemType.PERMISSIONS;
             this.defaultPerms = ((Permissions) testPerms).getHandler();
-            System.out.println("[" + logPrefix + "] Hooked into Permissions!");
-            return PermissionsManagerPermissionsSystemType.PERMISSIONS;
+            System.out.println("[" + p.getName() + "] Hooked into Permissions!");
+            return PermissionsSystemType.PERMISSIONS;
         }
 	    
 	    // No recognized permissions system found
-	    permsType = PermissionsManagerPermissionsSystemType.NONE;
-	    System.out.println("[" + logPrefix + "] No supported permissions system found! Permissions disabled!");
+	    permsType = PermissionsSystemType.NONE;
+	    System.out.println("[" + p.getName() + "] No supported permissions system found! Permissions disabled!");
 	    
-	    return PermissionsManagerPermissionsSystemType.NONE;
+	    return PermissionsSystemType.NONE;
     }
 	
 	/**

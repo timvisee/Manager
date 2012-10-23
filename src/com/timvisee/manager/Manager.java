@@ -35,7 +35,7 @@ public class Manager extends JavaPlugin {
 	 */
 	public void setupEconomyManager() {
 		// Setup the economy manager
-		this.em = new EconomyManager(this.getServer(), "SimpleShowcase");
+		this.em = new EconomyManager(this.getServer(), this);
 		this.em.setup();
 	}
 	
@@ -52,7 +52,7 @@ public class Manager extends JavaPlugin {
 	 */
 	public void setupPermissionsManager() {
 		// Setup the permissions manager
-		this.pm = new PermissionsManager(this.getServer(), "SimpleShowcase");
+		this.pm = new PermissionsManager(this.getServer(), this);
 		this.pm.setup();
 	}
 	

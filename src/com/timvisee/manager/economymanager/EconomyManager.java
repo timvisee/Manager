@@ -13,9 +13,9 @@ import cosine.boseconomy.BOSEconomy;
 
 public class EconomyManager {
 	
-	private EconomyManagerEconomySystemType economyType = EconomyManagerEconomySystemType.NONE;
+	private EconomySystemType economyType = EconomySystemType.NONE;
 	private Server s;
-	private String logPrefix;
+	private Plugin p;
 
 	// Simple Economy
 	private static SimpleEconomyHandler simpleEconomyHandler;
@@ -31,16 +31,16 @@ public class EconomyManager {
 	 * @param s server
 	 * @param logPrefix log prefix (plugin name)
 	 */
-	public EconomyManager(Server s, String logPrefix) {
+	public EconomyManager(Server s, Plugin p) {
 		this.s = s;
-		this.logPrefix = logPrefix;
+		this.p = p;
 	}
 	
 	/**
 	 * Get the used economy system where the economy manager is hooked into
 	 * @return economy system
 	 */
-	public EconomyManagerEconomySystemType getUsedEconomySystemType() {
+	public EconomySystemType getUsedEconomySystemType() {
 		return this.economyType;
 	}
 	
@@ -49,7 +49,7 @@ public class EconomyManager {
 	 * @return false if there isn't any economy system used
 	 */
 	public boolean isEnabled() {
-		return !economyType.equals(EconomyManagerEconomySystemType.NONE);
+		return !economyType.equals(EconomySystemType.NONE);
 	}
 	
 	/**
@@ -84,29 +84,29 @@ public class EconomyManager {
 		}
 	}
 	
-	public EconomyManagerEconomySystemType setup() {
+	public EconomySystemType setup() {
 		// Define the plugin manager
 		final PluginManager pm = this.s.getPluginManager();
 		
 		// Reset used economy system type
-		economyType = EconomyManagerEconomySystemType.NONE;
+		economyType = EconomySystemType.NONE;
 		
 		// Check if Simple Economy is available
 		Plugin simpleEconomy = pm.getPlugin("Simple Economy"); //TODO Rename plugin without space when updated
 		if(simpleEconomy != null) {
 			simpleEconomyHandler = ((com.timvisee.SimpleEconomy.SimpleEconomy) simpleEconomy).getHandler();
-			economyType = EconomyManagerEconomySystemType.SIMPLE_ECONOMY;
-		    System.out.println("[" + logPrefix + "] Hooked into Simple Economy!");
-		    return EconomyManagerEconomySystemType.SIMPLE_ECONOMY;
+			economyType = EconomySystemType.SIMPLE_ECONOMY;
+		    System.out.println("[" + p.getName() + "] Hooked into Simple Economy!");
+		    return EconomySystemType.SIMPLE_ECONOMY;
 		}
 		
 		// Check if BOSEconomy is available
 	    Plugin bose = pm.getPlugin("BOSEconomy");
 	    if(bose != null) {
 	        BOSEcon = (BOSEconomy)bose;
-			economyType = EconomyManagerEconomySystemType.BOSECONOMY;
-		    System.out.println("[" + logPrefix + "] Hooked into BOSEconomy!");
-		    return EconomyManagerEconomySystemType.BOSECONOMY;
+			economyType = EconomySystemType.BOSECONOMY;
+		    System.out.println("[" + p.getName() + "] Hooked into BOSEconomy!");
+		    return EconomySystemType.BOSECONOMY;
 	    }
 		
 		// Check if Vault is available
@@ -116,19 +116,19 @@ public class EconomyManager {
 	        if (economyProvider != null) {
 	            vaultEconomy = economyProvider.getProvider();
 	            if(vaultEconomy.isEnabled()) {
-	            	economyType = EconomyManagerEconomySystemType.VAULT;
-	            	System.out.println("[" + logPrefix + "] Hooked into Vault Economy!");
-	    		    return EconomyManagerEconomySystemType.VAULT;
+	            	economyType = EconomySystemType.VAULT;
+	            	System.out.println("[" + p.getName() + "] Hooked into Vault Economy!");
+	    		    return EconomySystemType.VAULT;
 	            } else
-	            	System.out.println("[" + logPrefix + "] Not using Vault Economy, Vault Economy is disabled!");
+	            	System.out.println("[" + p.getName() + "] Not using Vault Economy, Vault Economy is disabled!");
 	        }
 		}
 		
 	    // No recognized economy system found
-	    economyType = EconomyManagerEconomySystemType.NONE;
-	    System.out.println("[" + logPrefix + "] No supported economy system found! Economy disabled!");
+	    economyType = EconomySystemType.NONE;
+	    System.out.println("[" + p.getName() + "] No supported economy system found! Economy disabled!");
 	    
-	    return EconomyManagerEconomySystemType.NONE;
+	    return EconomySystemType.NONE;
 	}
 	
 	/**
