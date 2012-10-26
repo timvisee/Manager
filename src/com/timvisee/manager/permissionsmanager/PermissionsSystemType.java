@@ -6,6 +6,7 @@ public enum PermissionsSystemType {
 	PERMISSIONS_BUKKIT("Permissions Bukkit"),
 	B_PERMISSIONS("bPermissions"),
 	ESSENTIALS_GROUP_MANAGER("Essentials Group Manager"),
+	Z_PERMISSIONS("zPermissions"),
 	VAULT("Vault"),
 	PERMISSIONS("Permissions");
 	

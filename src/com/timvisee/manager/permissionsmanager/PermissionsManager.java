@@ -3,16 +3,19 @@ package com.timvisee.manager.permissionsmanager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import net.milkbowl.vault.permission.Permission;
 
 import org.anjocaido.groupmanager.GroupManager;
 import org.anjocaido.groupmanager.permissions.AnjoPermissionsHandler;
+import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
+import org.tyrannyofheaven.bukkit.zPermissions.ZPermissionsService;
 
 import ru.tehkode.permissions.PermissionManager;
 import ru.tehkode.permissions.PermissionUser;
@@ -38,6 +41,9 @@ public class PermissionsManager {
 	
 	// Permissions (the default old permissions system by nijiko)
 	private PermissionHandler defaultPerms;
+	
+	// zPermissions
+	private ZPermissionsService zPermissionsService;
 	
 	// Vault
 	public Permission vaultPerms = null;
@@ -87,7 +93,7 @@ public class PermissionsManager {
 				permsType = PermissionsSystemType.PERMISSIONS_EX;
 				
 				System.out.println("[" + p.getName() + "] Hooked into PermissionsEx!");
-				return PermissionsSystemType.PERMISSIONS_EX;
+				return permsType;
 			}
 		}
 		
@@ -96,7 +102,7 @@ public class PermissionsManager {
 		if(bukkitPerms != null) {
 			permsType = PermissionsSystemType.PERMISSIONS_BUKKIT;
 			System.out.println("[" + p.getName() + "] Hooked into PermissionsBukkit!");
-			return PermissionsSystemType.PERMISSIONS_BUKKIT;
+			return permsType;
 		}
 		
 		// Check if bPermissions is available
@@ -104,7 +110,7 @@ public class PermissionsManager {
 		if(testBPermissions != null) {
 			permsType = PermissionsSystemType.B_PERMISSIONS;
 			System.out.println("[" + p.getName() + "] Hooked into bPermissions!");
-			return PermissionsSystemType.B_PERMISSIONS;
+			return permsType;
 		}
 		
 		// Check if Essentials Group Manager is available
@@ -113,7 +119,18 @@ public class PermissionsManager {
 			permsType = PermissionsSystemType.ESSENTIALS_GROUP_MANAGER;
 			groupManagerPerms = (GroupManager)GMplugin;
             System.out.println("[" + p.getName() + "] Hooked into Essentials Group Manager!");
-            return PermissionsSystemType.ESSENTIALS_GROUP_MANAGER;
+            return permsType;
+		}
+		
+		// Check if zPermissions is available
+		Plugin testzPermissions = pm.getPlugin("zPermissions");
+		if(testzPermissions != null){
+			zPermissionsService = Bukkit.getServicesManager().load(ZPermissionsService.class);
+			if(zPermissionsService != null){
+				permsType = PermissionsSystemType.Z_PERMISSIONS;
+				System.out.println("[" + p.getName() + "] Hooked into zPermissions!");
+				return permsType;
+			}
 		}
 		
 		// VAULT PERMISSIONS
@@ -125,7 +142,7 @@ public class PermissionsManager {
 	            if(vaultPerms.isEnabled()) {
 	            	permsType = PermissionsSystemType.VAULT;
 	            	System.out.println("[" + p.getName() + "] Hooked into Vault Permissions!");
-	    		    return PermissionsSystemType.VAULT;
+	    		    return permsType;
 	            } else {
 	            	System.out.println("[" + p.getName() + "] Not using Vault Permissions, Vault Permissions is disabled!");
 	            }
@@ -191,6 +208,15 @@ public class PermissionsManager {
 			if (handler == null)
 				return false;
 			return handler.has(p, permsNode);
+		case Z_PERMISSIONS:
+			// zPermissions
+			Map<String, Boolean> perms;
+			perms = zPermissionsService.getPlayerPermissions(p.getWorld().getName(), null, p.getName());
+			if(perms.containsKey(permsNode)){
+				return perms.get(permsNode);
+			} else {
+				return def;
+			}
 		case VAULT:
 			// Vault
 			return vaultPerms.has(p, permsNode);
@@ -236,6 +262,10 @@ public class PermissionsManager {
 			if (handler == null)
 				return new ArrayList<String>();
 			return Arrays.asList(handler.getGroups(p.getName()));
+			
+		case Z_PERMISSIONS:
+			//zPermissions
+			return new ArrayList(zPermissionsService.getPlayerAssignedGroups(p.getName()));
 			
 		case VAULT:
 			// Vault

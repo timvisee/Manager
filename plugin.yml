@@ -3,5 +3,5 @@ main: com.timvisee.manager.Manager
 version: 0.1
 author: timvisee
 website: http://timvisee.com/
-softdepend: [Vault] #hack to fix trove errors
+softdepend: [Vault, zPermissions] #hack to fix trove errors
 commands:
