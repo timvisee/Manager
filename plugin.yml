@@ -7,4 +7,4 @@ softdepend: [Vault, zPermissions] #hack to fix trove errors
 commands:
    manager:
       description: This is a demo command.
-      usage: /manager node [permissionnode] or /manager groups
+      usage: /manager node [permissionnode], groups, addmoney, submoney, getmoney

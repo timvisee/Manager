@@ -11,6 +11,11 @@ import com.timvisee.SimpleEconomy.SimpleEconomyHandler.SimpleEconomyHandler;
 
 import cosine.boseconomy.BOSEconomy;
 
+import com.iCo6.Constants;
+import com.iCo6.iConomy;
+import com.iCo6.system.Accounts;
+import com.iCo6.system.Holdings;
+
 public class EconomyManager {
 	
 	private EconomySystemType economyType = EconomySystemType.NONE;
@@ -22,6 +27,11 @@ public class EconomyManager {
 	
 	// BOSEconomy
 	BOSEconomy BOSEcon = null;
+	
+	// iConomy 6
+	private Plugin plugin = null;
+    protected iConomy economy = null;
+    private Accounts accounts;
 	
 	// Vault
     public static Economy vaultEconomy = null;
@@ -66,12 +76,17 @@ public class EconomyManager {
 		case SIMPLE_ECONOMY:
 		case NONE:
 			// Simple Economy
-			// These systems won't support banking
+			// This system has no support for banks
 			return false;
 			
 		case BOSECONOMY:
 			// BOSEconomy
-			// These systems will support banking
+			// This system has support for banks
+			return true;
+			
+		case ICONOMY6:
+			// iConomy 6
+			// This system has support for banks
 			return true;
 			
 		case VAULT:
@@ -109,6 +124,15 @@ public class EconomyManager {
 		    return EconomySystemType.BOSECONOMY;
 	    }
 		
+	    // Check if iConomy6 is available
+	    Plugin iCon6 = pm.getPlugin("iConomy");
+	    if (iCon6 != null && iCon6.isEnabled() && iCon6.getClass().getName().equals("com.iCo6.iConomy")){
+	    	economy = (iConomy) iCon6;
+	    	accounts = new Accounts();
+	    	System.out.println("[" + p.getName() + "] Hooked into iConomy 6!");
+	    	return EconomySystemType.ICONOMY6;
+	    }
+	    
 		// Check if Vault is available
 	    final Plugin vaultPlugin = pm.getPlugin("Vault");
 		if (vaultPlugin != null && vaultPlugin.isEnabled()) {
@@ -161,6 +185,13 @@ public class EconomyManager {
 			// BOSEconomy
 			return BOSEcon.getPlayerMoneyDouble(p);
 			
+		case ICONOMY6:
+			// iConomy6
+			if (accounts.exists(p))
+				return accounts.get(p).getHoldings().getBalance();
+			else
+				return def;
+				
 		case VAULT:
 			// Vault
 			return vaultEconomy.getBalance(p);
@@ -179,7 +210,7 @@ public class EconomyManager {
 	 * Check if a player has enough money balance to pay something
 	 * @param p player name
 	 * @param price price to pay
-	 * @return true if has enough money
+	 * @return true if the player has enough money
 	 */
 	public boolean hasEnoughMoney(String p, double price) {
 		double balance = getBalance(p);
@@ -212,6 +243,14 @@ public class EconomyManager {
 			// BOSEconomy
 			BOSEcon.addPlayerMoney(p, money, false);
 			break;
+		
+		case ICONOMY6:
+			// iConomy6
+			if (accounts.exists(p)){
+				accounts.get(p).getHoldings().add(money);
+				return true;
+			} else
+				return false;
 			
 		case VAULT:
 			// Vault
@@ -262,7 +301,15 @@ public class EconomyManager {
 			// BOSEconomy
 			BOSEcon.setPlayerMoney(p, newBalance, false);
 			break;
-			
+		
+		case ICONOMY6:
+			// iConomy6
+			if (accounts.exists(p)){
+				accounts.get(p).getHoldings().subtract(money);
+				return true;
+			} else
+				return false;
+				
 		case VAULT:
 			// Vault
 			vaultEconomy.withdrawPlayer(p, money);
@@ -311,6 +358,14 @@ public class EconomyManager {
 		case BOSECONOMY:
 			// BOSEconomy
 			return BOSEcon.getMoneyNameProper(money);
+		
+		case ICONOMY6:
+			// iConomy6
+			if(money > 1.00) {
+				return Constants.Nodes.Major.getStringList().get(1);
+			} else {
+				return Constants.Nodes.Major.getStringList().get(0);
+			}
 			
 		case VAULT:
 			// Vault

@@ -67,12 +67,13 @@ public class Manager extends JavaPlugin {
 	}
 
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
-		if(sender instanceof Player){
-			if(cmd.getName().equalsIgnoreCase("manager")){
-				if(args.length>0){
-					if(args[0].equalsIgnoreCase("node")){
-						if(args.length>1){
-							if(this.pm.hasPermission((Player) sender, args[1]))
+		// Commands to test whether or not Manager is able to properly communicate with the permission/economy system currently running
+		if (sender instanceof Player){
+			if (cmd.getName().equalsIgnoreCase("manager")){
+				if (args.length>0){
+					if (args[0].equalsIgnoreCase("node")){
+						if (args.length>1){
+							if (this.pm.hasPermission((Player) sender, args[1]))
 								sender.sendMessage("Passed");
 							else
 								sender.sendMessage("Failed");
@@ -81,13 +82,27 @@ public class Manager extends JavaPlugin {
 							sender.sendMessage("No permission node provided.");
 							return false;
 						}
-					} else if(args[0].equalsIgnoreCase("groups")){
+					} else if (args[0].equalsIgnoreCase("groups")){
 						for(Object o: this.pm.getGroups((Player) sender)){
 							sender.sendMessage(o.toString());
 						}
 						return true;
+					} else if (args[0].equalsIgnoreCase("addmoney")){
+						if (args.length>1){
+							this.em.depositMoney(sender.getName(), Double.parseDouble(args[1]));
+							return true;
+						} else
+							return false;
+					} else if (args[0].equalsIgnoreCase("submoney")){
+						if (args.length>1){
+							this.em.withdrawMoney(sender.getName(), Double.parseDouble(args[1]));
+							return true;
+						} else
+							return false;
+					} else if (args[0].equalsIgnoreCase("getmoney")){
+						Double balance = this.em.getBalance(sender.getName());
+						sender.sendMessage("Balance: "+Double.toString(balance)+" "+this.em.getCurrencyName(balance));
 					}
-					
 				}
 			} else return false;
 		}
