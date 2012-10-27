@@ -126,7 +126,7 @@ public class EconomyManager {
 		
 	    // Check if iConomy6 is available
 	    Plugin iCon6 = pm.getPlugin("iConomy");
-	    if (iCon6 != null && iCon6.isEnabled() && iCon6.getClass().getName().equals("com.iCo6.iConomy")){
+	    if (iCon6 != null && iCon6.getClass().getName().equals("com.iCo6.iConomy")){
 	    	economy = (iConomy) iCon6;
 	    	accounts = new Accounts();
 	    	System.out.println("[" + p.getName() + "] Hooked into iConomy 6!");
