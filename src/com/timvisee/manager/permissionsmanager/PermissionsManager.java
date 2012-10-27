@@ -210,8 +210,7 @@ public class PermissionsManager {
 			return handler.has(p, permsNode);
 		case Z_PERMISSIONS:
 			// zPermissions
-			Map<String, Boolean> perms;
-			perms = zPermissionsService.getPlayerPermissions(p.getWorld().getName(), null, p.getName());
+			Map<String, Boolean> perms = zPermissionsService.getPlayerPermissions(p.getWorld().getName(), null, p.getName());
 			if(perms.containsKey(permsNode)){
 				return perms.get(permsNode);
 			} else {
