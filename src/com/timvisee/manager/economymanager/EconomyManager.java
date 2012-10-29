@@ -353,7 +353,7 @@ public class EconomyManager {
 
 		case MINECONOMY:
 			// MineConomy
-			return def;
+			return MCCom.getDefaultCurrency();
 			
 		case VAULT:
 			// Vault
