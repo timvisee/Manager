@@ -11,11 +11,6 @@ import com.timvisee.SimpleEconomy.SimpleEconomyHandler.SimpleEconomyHandler;
 
 import cosine.boseconomy.BOSEconomy;
 
-import com.iCo6.Constants;
-import com.iCo6.iConomy;
-import com.iCo6.system.Accounts;
-import com.iCo6.system.Holdings;
-
 public class EconomyManager {
 	
 	private EconomySystemType economyType = EconomySystemType.NONE;
@@ -27,11 +22,6 @@ public class EconomyManager {
 	
 	// BOSEconomy
 	BOSEconomy BOSEcon = null;
-	
-	// iConomy 6
-	private Plugin plugin = null;
-    protected iConomy economy = null;
-    private Accounts accounts;
 	
 	// Vault
     public static Economy vaultEconomy = null;
@@ -84,11 +74,6 @@ public class EconomyManager {
 			// This system has support for banks
 			return true;
 			
-		case ICONOMY6:
-			// iConomy 6
-			// This system has support for banks
-			return true;
-			
 		case VAULT:
 			// Vault
 			return vaultEconomy.hasBankSupport();
@@ -122,15 +107,6 @@ public class EconomyManager {
 			economyType = EconomySystemType.BOSECONOMY;
 		    System.out.println("[" + p.getName() + "] Hooked into BOSEconomy!");
 		    return EconomySystemType.BOSECONOMY;
-	    }
-		
-	    // Check if iConomy6 is available
-	    Plugin iCon6 = pm.getPlugin("iConomy");
-	    if (iCon6 != null && iCon6.getClass().getName().equals("com.iCo6.iConomy")){
-	    	economy = (iConomy) iCon6;
-	    	accounts = new Accounts();
-	    	System.out.println("[" + p.getName() + "] Hooked into iConomy 6!");
-	    	return EconomySystemType.ICONOMY6;
 	    }
 	    
 		// Check if Vault is available
@@ -184,13 +160,6 @@ public class EconomyManager {
 		case BOSECONOMY:
 			// BOSEconomy
 			return BOSEcon.getPlayerMoneyDouble(p);
-			
-		case ICONOMY6:
-			// iConomy6
-			if (accounts.exists(p))
-				return accounts.get(p).getHoldings().getBalance();
-			else
-				return def;
 				
 		case VAULT:
 			// Vault
@@ -243,14 +212,6 @@ public class EconomyManager {
 			// BOSEconomy
 			BOSEcon.addPlayerMoney(p, money, false);
 			break;
-		
-		case ICONOMY6:
-			// iConomy6
-			if (accounts.exists(p)){
-				accounts.get(p).getHoldings().add(money);
-				return true;
-			} else
-				return false;
 			
 		case VAULT:
 			// Vault
@@ -301,14 +262,6 @@ public class EconomyManager {
 			// BOSEconomy
 			BOSEcon.setPlayerMoney(p, newBalance, false);
 			break;
-		
-		case ICONOMY6:
-			// iConomy6
-			if (accounts.exists(p)){
-				accounts.get(p).getHoldings().subtract(money);
-				return true;
-			} else
-				return false;
 				
 		case VAULT:
 			// Vault
@@ -358,15 +311,7 @@ public class EconomyManager {
 		case BOSECONOMY:
 			// BOSEconomy
 			return BOSEcon.getMoneyNameProper(money);
-		
-		case ICONOMY6:
-			// iConomy6
-			if(money > 1.00) {
-				return Constants.Nodes.Major.getStringList().get(1);
-			} else {
-				return Constants.Nodes.Major.getStringList().get(0);
-			}
-			
+
 		case VAULT:
 			// Vault
 			if(money > 1.00) {

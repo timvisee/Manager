@@ -6,5 +6,6 @@ website: http://timvisee.com/
 softdepend: [Vault, zPermissions] #hack to fix trove errors
 commands:
    manager:
-      description: This is a demo command.
+      description: The testing commands for the manager plugin.
+      aliases: [m]
       usage: /manager node [permissionnode], groups, addmoney, submoney, getmoney [playername]

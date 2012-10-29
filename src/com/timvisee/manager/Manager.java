@@ -88,19 +88,19 @@ public class Manager extends JavaPlugin {
 						}
 						return true;
 					} else if (args[0].equalsIgnoreCase("addmoney")){
-						if (args.length>1){
+						if (args[1] != null){
 							this.em.depositMoney(sender.getName(), Double.parseDouble(args[1]));
 							return true;
 						} else
 							return false;
 					} else if (args[0].equalsIgnoreCase("submoney")){
-						if (args.length>1){
+						if (args[1] != null){
 							this.em.withdrawMoney(sender.getName(), Double.parseDouble(args[1]));
 							return true;
 						} else
 							return false;
 					} else if (args[0].equalsIgnoreCase("getmoney")){
-						if (args.length>1){
+						if (args[1] != null){
 							Double balance = this.em.getBalance(args[1]);
 							sender.sendMessage("Balance: "+Double.toString(balance)+" "+this.em.getCurrencyName(balance));
 							return true;
