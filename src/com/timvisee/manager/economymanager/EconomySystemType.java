@@ -4,6 +4,7 @@ public enum EconomySystemType {
 	NONE("None"),
 	SIMPLE_ECONOMY("Simple Economy"),
 	BOSECONOMY("BOSEconomy"),
+	MINECONOMY("MineConomy"),
 	VAULT("Vault");
 	
 	public String name;

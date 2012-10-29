@@ -11,6 +11,9 @@ import com.timvisee.SimpleEconomy.SimpleEconomyHandler.SimpleEconomyHandler;
 
 import cosine.boseconomy.BOSEconomy;
 
+import me.mjolnir.mineconomy.exceptions.NoAccountException;
+import me.mjolnir.mineconomy.internal.MCCom;
+
 public class EconomyManager {
 	
 	private EconomySystemType economyType = EconomySystemType.NONE;
@@ -109,6 +112,14 @@ public class EconomyManager {
 		    return EconomySystemType.BOSECONOMY;
 	    }
 	    
+	    // Check if MineConomy is available
+	    Plugin mineConomy = pm.getPlugin("MineConomy");
+	    if (mineConomy != null){
+	    	economyType = EconomySystemType.MINECONOMY;
+	    	System.out.println("[" + p.getName() + "] Hooked into MineConomy!");
+	    	return EconomySystemType.MINECONOMY;
+	    }
+	    
 		// Check if Vault is available
 	    final Plugin vaultPlugin = pm.getPlugin("Vault");
 		if (vaultPlugin != null && vaultPlugin.isEnabled()) {
@@ -160,7 +171,15 @@ public class EconomyManager {
 		case BOSECONOMY:
 			// BOSEconomy
 			return BOSEcon.getPlayerMoneyDouble(p);
-				
+			
+		case MINECONOMY:
+			// MineConomy
+			try{
+	            return MCCom.getExternalBalance(p);
+	        } catch (NoAccountException e){
+	            MCCom.create(p);
+	            return MCCom.getExternalBalance(p);
+	        }
 		case VAULT:
 			// Vault
 			return vaultEconomy.getBalance(p);
@@ -212,6 +231,16 @@ public class EconomyManager {
 			// BOSEconomy
 			BOSEcon.addPlayerMoney(p, money, false);
 			break;
+		
+		case MINECONOMY:
+			// MineConomy
+			try{
+				MCCom.setExternalBalance(p, MCCom.getExternalBalance(p)+money);
+	        } catch (NoAccountException e){
+	            MCCom.create(p);
+	            MCCom.setExternalBalance(p, MCCom.getExternalBalance(p)+money);
+	        }
+			break;
 			
 		case VAULT:
 			// Vault
@@ -262,7 +291,17 @@ public class EconomyManager {
 			// BOSEconomy
 			BOSEcon.setPlayerMoney(p, newBalance, false);
 			break;
-				
+		
+		case MINECONOMY:
+			// MineConomy
+			try{
+				MCCom.setExternalBalance(p, MCCom.getExternalBalance(p)-money);
+	        } catch (NoAccountException e){
+	            MCCom.create(p);
+	            MCCom.setExternalBalance(p, MCCom.getExternalBalance(p)-money);
+	        }
+			break;
+			
 		case VAULT:
 			// Vault
 			vaultEconomy.withdrawPlayer(p, money);
@@ -312,6 +351,10 @@ public class EconomyManager {
 			// BOSEconomy
 			return BOSEcon.getMoneyNameProper(money);
 
+		case MINECONOMY:
+			// MineConomy
+			return def;
+			
 		case VAULT:
 			// Vault
 			if(money > 1.00) {
