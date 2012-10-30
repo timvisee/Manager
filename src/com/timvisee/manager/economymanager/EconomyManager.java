@@ -1,20 +1,19 @@
 package com.timvisee.manager.economymanager;
 
-import net.milkbowl.vault.economy.Economy;
-
-import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
-import com.timvisee.SimpleEconomy.SimpleEconomyHandler.SimpleEconomyHandler;
+// Economy Systems
+import com.timvisee.SimpleEconomy.SimpleEconomyHandler.SimpleEconomyHandler; // SimpleEconomy
+import cosine.boseconomy.BOSEconomy; // BOSEconomy
+import me.mjolnir.mineconomy.internal.MCCom; // MineConomy
+import ca.agnate.EconXP.EconXP; // EconXP
+import is.currency.Currency; // CurrencyCore
 
-import cosine.boseconomy.BOSEconomy;
-
-import me.mjolnir.mineconomy.internal.MCCom;
-
-import ca.agnate.EconXP.EconXP;
+// Vault
+import net.milkbowl.vault.economy.Economy;
 
 public class EconomyManager {
 	
@@ -26,10 +25,13 @@ public class EconomyManager {
 	private static SimpleEconomyHandler simpleEconomyHandler;
 	
 	// BOSEconomy
-	BOSEconomy BOSEcon = null;
+	private BOSEconomy BOSEcon = null;
 	
 	// EconXP
-	EconXP econXP = null;
+	private EconXP econXP = null;
+	
+	// CurrencyCore
+	private Currency currencyC = null;
 	
 	// Vault
     public static Economy vaultEconomy = null;
@@ -37,7 +39,7 @@ public class EconomyManager {
 	/**
 	 * Constructor
 	 * @param s server
-	 * @param logPrefix log prefix (plugin name)
+	 * @param p this plugin
 	 */
 	public EconomyManager(Server s, Plugin p) {
 		this.s = s;
@@ -74,7 +76,7 @@ public class EconomyManager {
 		case SIMPLE_ECONOMY:
 		case NONE:
 			// Simple Economy
-			// This system has no support for banks
+			// This system doesn't have support for banks
 			return false;
 			
 		case BOSECONOMY:
@@ -84,7 +86,12 @@ public class EconomyManager {
 			
 		case ECONXP:
 			// EconXP
-			// This system has no support for banks
+			// This system doesn't have support for banks
+			return false;
+			
+		case CURRENCYCORE:
+			// CurrencyCore
+			// This system doesn't have support for banks
 			return false;
 			
 		case VAULT:
@@ -136,6 +143,15 @@ public class EconomyManager {
 	    	economyType = EconomySystemType.ECONXP;
 	    	econXP = (EconXP) econXPlugin;
 	    	System.out.println("[" + p.getName() + "] Hooked into EconXP!");
+	    	return EconomySystemType.ECONXP;
+	    }
+	    
+	    // Check if CurrencyCore is available
+	    Plugin currencyP = pm.getPlugin("CurrencyCore");
+	    if (currencyP != null){
+	    	economyType = EconomySystemType.CURRENCYCORE;
+	    	currencyC = (Currency) currencyP;
+	    	System.out.println("[" + p.getName() + "] Hooked into CurrencyCore!");
 	    	return EconomySystemType.ECONXP;
 	    }
 	    
@@ -198,6 +214,10 @@ public class EconomyManager {
 		case ECONXP:
 			// EconXP
 			return econXP.getExp(econXP.getPlayer(p));
+			
+		case CURRENCYCORE:
+			// CurrencyCore
+			return currencyC.getAccountManager().getAccount(p).getBalance();
 	        
 		case VAULT:
 			// Vault
@@ -261,6 +281,11 @@ public class EconomyManager {
 			econXP.addExp(econXP.getPlayer(p), (int)Math.ceil(money));
 			break;
 			
+		case CURRENCYCORE:
+			// CurrencyCore
+			currencyC.getAccountManager().getAccount(p).addBalance(money);
+			break;
+			
 		case VAULT:
 			// Vault
 			vaultEconomy.depositPlayer(p, money);
@@ -321,6 +346,11 @@ public class EconomyManager {
 			econXP.removeExp(econXP.getPlayer(p), (int)Math.ceil(money));
 			break;
 			
+		case CURRENCYCORE:
+			// CurrencyCore
+			currencyC.getAccountManager().getAccount(p).subtractBalance(money);
+			break;
+			
 		case VAULT:
 			// Vault
 			vaultEconomy.withdrawPlayer(p, money);
@@ -377,6 +407,14 @@ public class EconomyManager {
 		case ECONXP:
 			// EconXP
 			return "experience";
+			
+		case CURRENCYCORE:
+			// CurrencyCore
+			if(money > 1.00) {
+				return currencyC.getCurrencyConfig().getCurrencyMajor().get(1);
+			} else {
+				return currencyC.getCurrencyConfig().getCurrencyMajor().get(0);
+			}
 			
 		case VAULT:
 			// Vault
