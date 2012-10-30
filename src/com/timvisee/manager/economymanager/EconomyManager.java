@@ -11,7 +11,6 @@ import com.timvisee.SimpleEconomy.SimpleEconomyHandler.SimpleEconomyHandler;
 
 import cosine.boseconomy.BOSEconomy;
 
-import me.mjolnir.mineconomy.exceptions.NoAccountException;
 import me.mjolnir.mineconomy.internal.MCCom;
 
 public class EconomyManager {
@@ -174,12 +173,7 @@ public class EconomyManager {
 			
 		case MINECONOMY:
 			// MineConomy
-			try{
-	            return MCCom.getExternalBalance(p);
-	        } catch (NoAccountException e){
-	            MCCom.create(p);
-	            return MCCom.getExternalBalance(p);
-	        }
+	        return MCCom.getExternalBalance(p);
 		case VAULT:
 			// Vault
 			return vaultEconomy.getBalance(p);
@@ -234,12 +228,7 @@ public class EconomyManager {
 		
 		case MINECONOMY:
 			// MineConomy
-			try{
-				MCCom.setExternalBalance(p, MCCom.getExternalBalance(p)+money);
-	        } catch (NoAccountException e){
-	            MCCom.create(p);
-	            MCCom.setExternalBalance(p, MCCom.getExternalBalance(p)+money);
-	        }
+            MCCom.setExternalBalance(p, MCCom.getExternalBalance(p)+money);
 			break;
 			
 		case VAULT:
@@ -294,12 +283,7 @@ public class EconomyManager {
 		
 		case MINECONOMY:
 			// MineConomy
-			try{
-				MCCom.setExternalBalance(p, MCCom.getExternalBalance(p)-money);
-	        } catch (NoAccountException e){
-	            MCCom.create(p);
-	            MCCom.setExternalBalance(p, MCCom.getExternalBalance(p)-money);
-	        }
+			MCCom.setExternalBalance(p, MCCom.getExternalBalance(p)-money);
 			break;
 			
 		case VAULT:
