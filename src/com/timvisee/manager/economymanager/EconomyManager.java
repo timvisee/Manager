@@ -2,6 +2,7 @@ package com.timvisee.manager.economymanager;
 
 import net.milkbowl.vault.economy.Economy;
 
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -12,6 +13,8 @@ import com.timvisee.SimpleEconomy.SimpleEconomyHandler.SimpleEconomyHandler;
 import cosine.boseconomy.BOSEconomy;
 
 import me.mjolnir.mineconomy.internal.MCCom;
+
+import ca.agnate.EconXP.EconXP;
 
 public class EconomyManager {
 	
@@ -24,6 +27,9 @@ public class EconomyManager {
 	
 	// BOSEconomy
 	BOSEconomy BOSEcon = null;
+	
+	// EconXP
+	EconXP econXP = null;
 	
 	// Vault
     public static Economy vaultEconomy = null;
@@ -73,8 +79,13 @@ public class EconomyManager {
 			
 		case BOSECONOMY:
 			// BOSEconomy
-			// This system has support for banks
+			// This system does have support for banks
 			return true;
+			
+		case ECONXP:
+			// EconXP
+			// This system has no support for banks
+			return false;
 			
 		case VAULT:
 			// Vault
@@ -117,6 +128,15 @@ public class EconomyManager {
 	    	economyType = EconomySystemType.MINECONOMY;
 	    	System.out.println("[" + p.getName() + "] Hooked into MineConomy!");
 	    	return EconomySystemType.MINECONOMY;
+	    }
+	    
+	    // Check if EconXP is available
+	    Plugin econXPlugin = pm.getPlugin("EconXP");
+	    if (econXPlugin != null){
+	    	economyType = EconomySystemType.ECONXP;
+	    	econXP = (EconXP) econXPlugin;
+	    	System.out.println("[" + p.getName() + "] Hooked into EconXP!");
+	    	return EconomySystemType.ECONXP;
 	    }
 	    
 		// Check if Vault is available
@@ -174,6 +194,11 @@ public class EconomyManager {
 		case MINECONOMY:
 			// MineConomy
 	        return MCCom.getExternalBalance(p);
+	        
+		case ECONXP:
+			// EconXP
+			return econXP.getExp(econXP.getPlayer(p));
+	        
 		case VAULT:
 			// Vault
 			return vaultEconomy.getBalance(p);
@@ -231,6 +256,11 @@ public class EconomyManager {
             MCCom.setExternalBalance(p, MCCom.getExternalBalance(p)+money);
 			break;
 			
+		case ECONXP:
+			// EconXP
+			econXP.addExp(econXP.getPlayer(p), (int)Math.ceil(money));
+			break;
+			
 		case VAULT:
 			// Vault
 			vaultEconomy.depositPlayer(p, money);
@@ -285,6 +315,11 @@ public class EconomyManager {
 			// MineConomy
 			MCCom.setExternalBalance(p, MCCom.getExternalBalance(p)-money);
 			break;
+		
+		case ECONXP:
+			// EconXP
+			econXP.removeExp(econXP.getPlayer(p), (int)Math.ceil(money));
+			break;
 			
 		case VAULT:
 			// Vault
@@ -338,6 +373,10 @@ public class EconomyManager {
 		case MINECONOMY:
 			// MineConomy
 			return MCCom.getDefaultCurrency();
+		
+		case ECONXP:
+			// EconXP
+			return "experience";
 			
 		case VAULT:
 			// Vault
