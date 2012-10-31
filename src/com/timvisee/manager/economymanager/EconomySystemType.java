@@ -7,6 +7,7 @@ public enum EconomySystemType {
 	MINECONOMY("MineConomy"),
 	ECONXP("EconXP"),
 	CURRENCYCORE("CurrencyCore"),
+	CRAFTCONOMY("CraftConomy"),
 	VAULT("Vault");
 	
 	public String name;

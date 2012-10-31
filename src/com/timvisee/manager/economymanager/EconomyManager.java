@@ -6,11 +6,13 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 // Economy Systems
-import com.timvisee.SimpleEconomy.SimpleEconomyHandler.SimpleEconomyHandler; // SimpleEconomy
-import cosine.boseconomy.BOSEconomy; // BOSEconomy
-import me.mjolnir.mineconomy.internal.MCCom; // MineConomy
-import ca.agnate.EconXP.EconXP; // EconXP
-import is.currency.Currency; // CurrencyCore
+import com.timvisee.SimpleEconomy.SimpleEconomyHandler.SimpleEconomyHandler;	// SimpleEconomy
+import cosine.boseconomy.BOSEconomy; 											// BOSEconomy
+import me.mjolnir.mineconomy.internal.MCCom; 									// MineConomy
+import ca.agnate.EconXP.EconXP; 												// EconXP
+import is.currency.Currency; 													// CurrencyCor
+import com.greatmancode.craftconomy3.Common; 									// CraftConomy
+import com.greatmancode.craftconomy3.currency.CurrencyManager; 					// CraftConomy
 
 // Vault
 import net.milkbowl.vault.economy.Economy;
@@ -94,6 +96,11 @@ public class EconomyManager {
 			// This system doesn't have support for banks
 			return false;
 			
+		case CRAFTCONOMY:
+			// CraftConomy
+			// This system does have support for banks
+			return true;
+			
 		case VAULT:
 			// Vault
 			return vaultEconomy.hasBankSupport();
@@ -154,6 +161,17 @@ public class EconomyManager {
 	    	System.out.println("[" + p.getName() + "] Hooked into CurrencyCore!");
 	    	return EconomySystemType.ECONXP;
 	    }
+	    
+	    // Check if CraftConomy is available
+	    Plugin craftConomyP = pm.getPlugin("Craftconomy3");
+	    if (craftConomyP != null){
+	    	economyType = EconomySystemType.CRAFTCONOMY;
+	    	System.out.println("[" + p.getName() + "] Hooked into CraftConomy!");
+	    	return EconomySystemType.CRAFTCONOMY;
+	    }
+	    
+	    
+	    
 	    
 		// Check if Vault is available
 	    final Plugin vaultPlugin = pm.getPlugin("Vault");
@@ -218,6 +236,13 @@ public class EconomyManager {
 		case CURRENCYCORE:
 			// CurrencyCore
 			return currencyC.getAccountManager().getAccount(p).getBalance();
+			
+		case CRAFTCONOMY:
+			// CraftConomy
+			return Common.getInstance().getAccountManager().getAccount(p).getBalance(
+						Common.getInstance().getServerCaller().getDefaultWorld(), // The default world
+						Common.getInstance().getCurrencyManager().getCurrency(CurrencyManager.defaultCurrencyID).getName() // The default currency
+				   );
 	        
 		case VAULT:
 			// Vault
@@ -285,6 +310,15 @@ public class EconomyManager {
 			// CurrencyCore
 			currencyC.getAccountManager().getAccount(p).addBalance(money);
 			break;
+		
+		case CRAFTCONOMY:
+			// CraftConomy
+			Common.getInstance().getAccountManager().getAccount(p).deposit(
+				money,
+				Common.getInstance().getServerCaller().getDefaultWorld(), // The default world
+				Common.getInstance().getCurrencyManager().getCurrency(CurrencyManager.defaultCurrencyID).getName() // The default currency
+			);
+			break;
 			
 		case VAULT:
 			// Vault
@@ -351,6 +385,15 @@ public class EconomyManager {
 			currencyC.getAccountManager().getAccount(p).subtractBalance(money);
 			break;
 			
+			case CRAFTCONOMY:
+				// CraftConomy
+				Common.getInstance().getAccountManager().getAccount(p).withdraw(
+					money,
+					Common.getInstance().getServerCaller().getDefaultWorld(), // The default world
+					Common.getInstance().getCurrencyManager().getCurrency(CurrencyManager.defaultCurrencyID).getName() // The default currency
+				);
+				break;
+				
 		case VAULT:
 			// Vault
 			vaultEconomy.withdrawPlayer(p, money);
@@ -414,6 +457,14 @@ public class EconomyManager {
 				return currencyC.getCurrencyConfig().getCurrencyMajor().get(1);
 			} else {
 				return currencyC.getCurrencyConfig().getCurrencyMajor().get(0);
+			}
+			
+		case CRAFTCONOMY:
+			// CraftConomy
+			if(money > 1.00) {
+				return Common.getInstance().getCurrencyManager().getCurrency(CurrencyManager.defaultCurrencyID).getPlural();
+			} else {
+				return Common.getInstance().getCurrencyManager().getCurrency(CurrencyManager.defaultCurrencyID).getName();
 			}
 			
 		case VAULT:
