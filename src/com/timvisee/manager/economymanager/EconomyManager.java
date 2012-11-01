@@ -1,18 +1,26 @@
 package com.timvisee.manager.economymanager;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Server;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
+
 // Economy Systems
 import com.timvisee.SimpleEconomy.SimpleEconomyHandler.SimpleEconomyHandler;	// SimpleEconomy
-import cosine.boseconomy.BOSEconomy; 											// BOSEconomy
-import me.mjolnir.mineconomy.internal.MCCom; 									// MineConomy
-import ca.agnate.EconXP.EconXP; 												// EconXP
-import is.currency.Currency; 													// CurrencyCor
-import com.greatmancode.craftconomy3.Common; 									// CraftConomy
-import com.greatmancode.craftconomy3.currency.CurrencyManager; 					// CraftConomy
+import cosine.boseconomy.BOSEconomy; 			// BOSEconomy
+import me.mjolnir.mineconomy.internal.MCCom; 	// MineConomy
+import ca.agnate.EconXP.EconXP; 				// EconXP
+import is.currency.Currency; 					// CurrencyCor
+import com.greatmancode.craftconomy3.Common; 					// CraftConomy
+import com.greatmancode.craftconomy3.currency.CurrencyManager; 	// CraftConomy
+import org.neocraft.AEco.AEco;					// AEco
+import java.lang.reflect.Method;				// AEco
 
 // Vault
 import net.milkbowl.vault.economy.Economy;
@@ -34,6 +42,10 @@ public class EconomyManager {
 	
 	// CurrencyCore
 	private Currency currencyC = null;
+	
+	// AEco
+	private org.neocraft.AEco.part.Economy.Economy AEconomy = null;
+	private Method AEwallet = null;
 	
 	// Vault
     public static Economy vaultEconomy = null;
@@ -100,6 +112,11 @@ public class EconomyManager {
 			// CraftConomy
 			// This system does have support for banks
 			return true;
+			
+		case AECO:
+			// AEco
+			// This system doesn't have support for banks
+			return false;
 			
 		case VAULT:
 			// Vault
@@ -170,8 +187,38 @@ public class EconomyManager {
 	    	return EconomySystemType.CRAFTCONOMY;
 	    }
 	    
-	    
-	    
+	    // Check if AEco is available
+	    Plugin AEcoP = pm.getPlugin("AEco");
+	    if (AEcoP != null){
+	    	Boolean error = false;
+	    	economyType = EconomySystemType.AECO;
+	    	if(!AEcoP.isEnabled()){
+	    		System.out.println("Waiting for AEco to enable.");
+	    		try {
+					Bukkit.getServer().getPluginManager().registerEvents(new WaitForIt(this), AEcoP);
+				} catch (InterruptedException e) {
+					System.out.println("[" + p.getName() + "][InterruptedException][WaitForIt] The WaitForIt class seems to have been interrupted.");
+				}
+	    	}
+	    	
+	    	try {
+	    		AEconomy = AEco.ECONOMY;
+	    		AEwallet = AEconomy.getClass().getMethod("AEwallet", String.class);
+	            AEwallet.setAccessible(true);
+	    	} catch (SecurityException e) {
+            	error = true;
+            } catch (NoSuchMethodException e) {
+            	error = true;
+            } catch (NullPointerException e){
+            	error = true;
+            }
+	    	if(!error){
+		    	System.out.println("[" + p.getName() + "] Hooked into AEco!");
+		    	return EconomySystemType.AECO;
+	    	} else {
+	    		System.out.println("[" + p.getName() + "] Failed to hook into AEco. Ignoring it.");
+	    	}
+	    }
 	    
 		// Check if Vault is available
 	    final Plugin vaultPlugin = pm.getPlugin("Vault");
@@ -243,7 +290,11 @@ public class EconomyManager {
 						Common.getInstance().getServerCaller().getDefaultWorld(), // The default world
 						Common.getInstance().getCurrencyManager().getCurrency(CurrencyManager.defaultCurrencyID).getName() // The default currency
 				   );
-	        
+	       
+		case AECO:
+			// AEco
+			return AEconomy.cash(p);
+			
 		case VAULT:
 			// Vault
 			return vaultEconomy.getBalance(p);
@@ -319,7 +370,12 @@ public class EconomyManager {
 				Common.getInstance().getCurrencyManager().getCurrency(CurrencyManager.defaultCurrencyID).getName() // The default currency
 			);
 			break;
-			
+			   
+		case AECO:
+			// AEco
+			AEconomy.add(p, (int) Math.ceil(money));
+			break;
+						
 		case VAULT:
 			// Vault
 			vaultEconomy.depositPlayer(p, money);
@@ -393,7 +449,12 @@ public class EconomyManager {
 					Common.getInstance().getCurrencyManager().getCurrency(CurrencyManager.defaultCurrencyID).getName() // The default currency
 				);
 				break;
-				
+				   
+		case AECO:
+			// AEco
+			AEconomy.remove(p, (int) Math.ceil(money));
+			break;
+							
 		case VAULT:
 			// Vault
 			vaultEconomy.withdrawPlayer(p, money);
@@ -466,6 +527,10 @@ public class EconomyManager {
 			} else {
 				return Common.getInstance().getCurrencyManager().getCurrency(CurrencyManager.defaultCurrencyID).getName();
 			}
+		
+		case AECO:
+			// AEco
+			return AEco.CONFIG.getCurrency();
 			
 		case VAULT:
 			// Vault
@@ -484,4 +549,23 @@ public class EconomyManager {
 			return def;
 		}
 	}
+	
+	public class WaitForIt implements Listener {
+		EconomyManager manager = null;
+		
+		public WaitForIt(EconomyManager manager) throws InterruptedException {
+	        this.manager = manager;
+	        this.manager.wait();
+	    }
+		
+		@EventHandler(priority = EventPriority.MONITOR)
+		public void onPluginEnable(PluginEnableEvent e){
+			Plugin AEcoP = manager.s.getPluginManager().getPlugin("AEco");
+			if (AEcoP != null && AEcoP.isEnabled()){
+				manager.notify();
+			}
+			
+        }
+	}
+	
 }
