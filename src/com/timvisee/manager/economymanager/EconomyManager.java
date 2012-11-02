@@ -128,12 +128,19 @@ public class EconomyManager {
 		}
 	}
 	
+	/**
+	 * Setup the economymanager and hook into the the active economy plugin.
+	 * @return EconomySystemType the economy system hooked into.
+	 */	
 	public EconomySystemType setup() {
 		// Define the plugin manager
 		final PluginManager pm = this.s.getPluginManager();
 		
 		// Reset used economy system type
 		economyType = EconomySystemType.NONE;
+		
+		// Boolean to tell if we are waiting for a plugin to enable
+		Boolean waiting = false;
 		
 		// Check if Simple Economy is available
 		Plugin simpleEconomy = pm.getPlugin("Simple Economy"); //TODO Rename plugin without space when updated
@@ -191,33 +198,26 @@ public class EconomyManager {
 	    Plugin AEcoP = pm.getPlugin("AEco");
 	    if (AEcoP != null){
 	    	Boolean error = false;
-	    	economyType = EconomySystemType.AECO;
-	    	if(!AEcoP.isEnabled()){
-	    		System.out.println("Waiting for AEco to enable.");
+	    	if(AEcoP.isEnabled()){
 	    		try {
-					Bukkit.getServer().getPluginManager().registerEvents(new WaitForIt(this), AEcoP);
-				} catch (InterruptedException e) {
-					System.out.println("[" + p.getName() + "][InterruptedException][WaitForIt] The WaitForIt class seems to have been interrupted.");
-				}
-	    	}
-	    	
-	    	try {
-	    		AEconomy = AEco.ECONOMY;
-	    		AEwallet = AEconomy.getClass().getMethod("AEwallet", String.class);
-	            AEwallet.setAccessible(true);
-	    	} catch (SecurityException e) {
-            	error = true;
-            } catch (NoSuchMethodException e) {
-            	error = true;
-            } catch (NullPointerException e){
-            	error = true;
-            }
-	    	if(!error){
-		    	System.out.println("[" + p.getName() + "] Hooked into AEco!");
-		    	return EconomySystemType.AECO;
+		    		AEconomy = AEco.ECONOMY;
+		    		AEwallet = AEconomy.getClass().getMethod("AEwallet", String.class);
+		            AEwallet.setAccessible(true);
+		    	} catch (SecurityException e) {
+	            	error = true;
+	            } catch (NoSuchMethodException e) {
+	            	error = true;
+	            }
+		    	if(!error){
+			    	System.out.println("[" + p.getName() + "] Hooked into AEco!");
+			    	economyType = EconomySystemType.AECO;
+			    	return EconomySystemType.AECO;
+		    	}
 	    	} else {
-	    		System.out.println("[" + p.getName() + "] Failed to hook into AEco. Ignoring it.");
-	    	}
+	    		System.out.println("[" + p.getName() + "] Waiting for AEco to enable.");
+				Bukkit.getServer().getPluginManager().registerEvents(new WaitForIt(this, AEcoP), this.p);
+				waiting = true;
+	    	}	    	
 	    }
 	    
 		// Check if Vault is available
@@ -235,11 +235,41 @@ public class EconomyManager {
 	        }
 		}
 		
-	    // No recognized economy system found
-	    economyType = EconomySystemType.NONE;
-	    System.out.println("[" + p.getName() + "] No supported economy system found! Economy disabled!");
-	    
-	    return EconomySystemType.NONE;
+		// No recognized economy system found and not waiting for one to enable
+		if(!waiting){
+			System.out.println("[" + p.getName() + "] No supported economy system found! Economy disabled!");
+		    return EconomySystemType.NONE;
+		}
+		
+		// Set the economyType to none to avoid problems while waiting.
+		return economyType = EconomySystemType.NONE;
+		
+	}
+	
+	/**
+	 * Setup the economy system if we had to wait for it to enable
+	 * @param ecoP EconomyPlugin that was enabled
+	 */
+	public void delayedSetup(Plugin ecoP){
+		String ecoSysType = ecoP.getName();
+		EconomySystemType ecoSystems[] = EconomySystemType.values();
+		for (EconomySystemType ecoName: ecoSystems){
+			if (ecoSysType.equalsIgnoreCase(ecoName.getName())){
+				economyType = ecoName;
+				switch(ecoName){
+					case AECO:
+						try {
+							this.AEconomy = AEco.ECONOMY;
+				    		this.AEwallet = AEconomy.getClass().getMethod("AEwallet", String.class);
+				            this.AEwallet.setAccessible(true);
+						} catch (SecurityException e) {
+			            } catch (NoSuchMethodException e) {}
+						break;
+				}
+				System.out.println("[" + this.p.getName() + "] Hooked into " + ecoP.getName() + "!");
+				break;
+			}
+		}		
 	}
 	
 	/**
@@ -550,21 +580,25 @@ public class EconomyManager {
 		}
 	}
 	
+	
+	/**
+	 * The WaitForIt class is exactly what the name suggests, it waits for a plugin to enable.
+	 * When the plugin enables it calls the delayedSetup method of the EconomyManager class to hook into the enabled plugin.
+	 */
 	public class WaitForIt implements Listener {
 		EconomyManager manager = null;
+		Plugin eco = null;
 		
-		public WaitForIt(EconomyManager manager) throws InterruptedException {
+		public WaitForIt(EconomyManager manager, Plugin eco) {
 	        this.manager = manager;
-	        this.manager.wait();
+	        this.eco = eco;
 	    }
 		
 		@EventHandler(priority = EventPriority.MONITOR)
 		public void onPluginEnable(PluginEnableEvent e){
-			Plugin AEcoP = manager.s.getPluginManager().getPlugin("AEco");
-			if (AEcoP != null && AEcoP.isEnabled()){
-				manager.notify();
+			if (eco != null && eco.isEnabled()){
+				manager.delayedSetup(eco);
 			}
-			
         }
 	}
 	
