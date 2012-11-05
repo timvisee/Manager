@@ -704,11 +704,10 @@ public class EconomyManager {
 			return def;
 		}
 		
-		// Get currency name
+		// Get currency symbol
 		switch(this.economyType) {
 		case SIMPLE_ECONOMY:
 			// Simple Economy
-			//TODO Finish this function in the API of Simple Economy
 			return "";
 			
 		case BOSECONOMY:

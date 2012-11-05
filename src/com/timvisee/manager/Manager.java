@@ -105,13 +105,7 @@ public class Manager extends JavaPlugin {
 						} else {
 							balance = this.em.getBalance(sender.getName());
 						}
-						String currency = this.em.getCurrencyName(balance);
-						if (currency == ""){
-							sender.sendMessage("Balance: "+this.em.getCurrencySymbol()+Double.toString(balance));
-						} else {
-							sender.sendMessage("Balance: "+Double.toString(balance)+" "+currency);
-						}
-						
+						sender.sendMessage("Balance: "+this.em.getCurrencySymbol()+Double.toString(balance)+" "+this.em.getCurrencyName(balance));
 						return true;
 					}
 				}
