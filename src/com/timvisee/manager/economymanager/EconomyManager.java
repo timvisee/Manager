@@ -629,7 +629,7 @@ public class EconomyManager {
 			
 		case ESSENTIALS:
 			// Essentials
-			return essConf.getCurrencySymbol();
+			return "";
 
 		case MINECONOMY:
 			// MineConomy
@@ -665,7 +665,7 @@ public class EconomyManager {
 		
 		case AECO:
 			// AEco
-			return AEco.CONFIG.getCurrency();
+			return "";
 			
 		case VAULT:
 			// Vault
@@ -674,6 +674,78 @@ public class EconomyManager {
 			} else {
 				return vaultEconomy.currencyNamePlural();
 			}
+			
+		case NONE:
+			// Not hooked into any economy system, return false
+			return def;
+			
+		default:
+			// Something went wrong, return false to prevent problems
+			return def;
+		}
+	}
+	
+	/**
+	 * Get the currency symbol
+	 * @return currency symbol
+	 */
+	public String getCurrencySymbol() {
+		return getCurrencySymbol("$");
+	}
+	
+	/**
+	 * Get the currency symbol
+	 * @param def the default currency symbol
+	 * @return currency symbol
+	 */
+	public String getCurrencySymbol(String def) {
+		if(!isEnabled()) {
+			// No economy system is used, return false
+			return def;
+		}
+		
+		// Get currency name
+		switch(this.economyType) {
+		case SIMPLE_ECONOMY:
+			// Simple Economy
+			//TODO Finish this function in the API of Simple Economy
+			return "";
+			
+		case BOSECONOMY:
+			// BOSEconomy
+			return "";
+			
+		case ESSENTIALS:
+			// Essentials
+			return essConf.getCurrencySymbol();
+
+		case MINECONOMY:
+			// MineConomy
+			return "";
+		
+		case EWALLET:
+			// eWallet
+			return "";
+			
+		case ECONXP:
+			// EconXP
+			return "";
+			
+		case CURRENCYCORE:
+			// CurrencyCore
+			return "";
+			
+		case CRAFTCONOMY:
+			// CraftConomy
+			return "";
+		
+		case AECO:
+			// AEco
+			return AEco.CONFIG.getCurrency();
+			
+		case VAULT:
+			// Vault
+			return "";
 			
 		case NONE:
 			// Not hooked into any economy system, return false

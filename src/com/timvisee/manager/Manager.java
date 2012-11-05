@@ -99,15 +99,20 @@ public class Manager extends JavaPlugin {
 						} else
 							return false;
 					} else if (args[0].equalsIgnoreCase("getmoney")){
+						Double balance;
 						if (args.length>1){
-							Double balance = this.em.getBalance(args[1]);
-							sender.sendMessage("Balance: "+Double.toString(balance)+" "+this.em.getCurrencyName(balance));
-							return true;
+							balance = this.em.getBalance(args[1]);
 						} else {
-							Double balance = this.em.getBalance(sender.getName());
-							sender.sendMessage("Balance: "+Double.toString(balance)+" "+this.em.getCurrencyName(balance));
-							return true;
+							balance = this.em.getBalance(sender.getName());
 						}
+						String currency = this.em.getCurrencyName(balance);
+						if (currency == ""){
+							sender.sendMessage("Balance: "+this.em.getCurrencySymbol()+Double.toString(balance));
+						} else {
+							sender.sendMessage("Balance: "+Double.toString(balance)+" "+currency);
+						}
+						
+						return true;
 					}
 				}
 			} else return false;
