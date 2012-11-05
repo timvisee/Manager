@@ -12,15 +12,21 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 
 
 // Economy Systems
-import com.timvisee.SimpleEconomy.SimpleEconomyHandler.SimpleEconomyHandler;	// SimpleEconomy
-import cosine.boseconomy.BOSEconomy; 			// BOSEconomy
-import me.mjolnir.mineconomy.internal.MCCom; 	// MineConomy
-import ca.agnate.EconXP.EconXP; 				// EconXP
-import is.currency.Currency; 					// CurrencyCor
-import com.greatmancode.craftconomy3.Common; 					// CraftConomy
-import com.greatmancode.craftconomy3.currency.CurrencyManager; 	// CraftConomy
-import org.neocraft.AEco.AEco;					// AEco
-import java.lang.reflect.Method;				// AEco
+import com.timvisee.SimpleEconomy.SimpleEconomy; // SimpleEconomy
+import com.timvisee.SimpleEconomy.SimpleEconomyHandler.SimpleEconomyHandler;    // SimpleEconomy
+import cosine.boseconomy.BOSEconomy;            // BOSEconomy
+import com.earth2me.essentials.Essentials;      // Essentials
+import com.earth2me.essentials.Settings;        // Essentials
+import com.earth2me.essentials.api.NoLoanPermittedException;  // Essentials
+import com.earth2me.essentials.api.UserDoesNotExistException; // Essentials
+import me.mjolnir.mineconomy.internal.MCCom;     // MineConomy
+import me.ethan.eWallet.ECO;                     // eWallet
+import ca.agnate.EconXP.EconXP;                  // EconXP
+import is.currency.Currency;                     // CurrencyCore
+import com.greatmancode.craftconomy3.Common;                   // CraftConomy
+import com.greatmancode.craftconomy3.currency.CurrencyManager; // CraftConomy
+import org.neocraft.AEco.AEco;                  // AEco
+import java.lang.reflect.Method;                // AEco
 
 // Vault
 import net.milkbowl.vault.economy.Economy;
@@ -37,6 +43,12 @@ public class EconomyManager {
 	// BOSEconomy
 	private BOSEconomy BOSEcon = null;
 	
+	// Essentials
+	private Settings essConf = null;
+	
+	// eWallet
+	private ECO eWallet = null;
+	
 	// EconXP
 	private EconXP econXP = null;
 	
@@ -48,7 +60,7 @@ public class EconomyManager {
 	private Method AEwallet = null;
 	
 	// Vault
-    public static Economy vaultEconomy = null;
+    public static net.milkbowl.vault.economy.Economy vaultEconomy = null;
 	
 	/**
 	 * Constructor
@@ -98,6 +110,16 @@ public class EconomyManager {
 			// This system does have support for banks
 			return true;
 			
+		case ESSENTIALS:
+			// Essentials
+			// This system doesn't have support for banks
+			return false;
+			
+		case EWALLET:
+			// eWallet
+			// This system doesn't have support for banks
+			return false;
+			
 		case ECONXP:
 			// EconXP
 			// This system doesn't have support for banks
@@ -145,53 +167,70 @@ public class EconomyManager {
 		// Check if Simple Economy is available
 		Plugin simpleEconomy = pm.getPlugin("Simple Economy"); //TODO Rename plugin without space when updated
 		if(simpleEconomy != null) {
-			simpleEconomyHandler = ((com.timvisee.SimpleEconomy.SimpleEconomy) simpleEconomy).getHandler();
-			economyType = EconomySystemType.SIMPLE_ECONOMY;
+			simpleEconomyHandler = ((SimpleEconomy) simpleEconomy).getHandler();
 		    System.out.println("[" + p.getName() + "] Hooked into Simple Economy!");
-		    return EconomySystemType.SIMPLE_ECONOMY;
+		    return economyType = EconomySystemType.SIMPLE_ECONOMY;
 		}
 		
 		// Check if BOSEconomy is available
 	    Plugin bose = pm.getPlugin("BOSEconomy");
 	    if(bose != null) {
 	        BOSEcon = (BOSEconomy)bose;
-			economyType = EconomySystemType.BOSECONOMY;
-		    System.out.println("[" + p.getName() + "] Hooked into BOSEconomy!");
-		    return EconomySystemType.BOSECONOMY;
+			System.out.println("[" + p.getName() + "] Hooked into BOSEconomy!");
+		    return economyType = EconomySystemType.BOSECONOMY;
+	    }
+	    
+	    // Check if Essentials is available
+	    Plugin essP = pm.getPlugin("Essentials");
+	    if (essP != null){
+	    	if(essP.isEnabled()){
+		    	essConf = (Settings) ((Essentials) essP).getSettings();
+		    	System.out.println("[" + p.getName() + "] Hooked into Essentials!");
+		    	return economyType = EconomySystemType.ESSENTIALS;
+	    	} else {
+	    		System.out.println("[" + p.getName() + "] Waiting for Essentials to enable.");
+				Bukkit.getServer().getPluginManager().registerEvents(new WaitForIt(this, essP), this.p);
+				waiting = true;
+	    	}
 	    }
 	    
 	    // Check if MineConomy is available
 	    Plugin mineConomy = pm.getPlugin("MineConomy");
 	    if (mineConomy != null){
-	    	economyType = EconomySystemType.MINECONOMY;
 	    	System.out.println("[" + p.getName() + "] Hooked into MineConomy!");
-	    	return EconomySystemType.MINECONOMY;
+	    	return economyType = EconomySystemType.MINECONOMY;
 	    }
+	    
+	    // Check if eWallet is available
+	    Plugin eWalletP = pm.getPlugin("eWallet");
+	    if (eWalletP != null){
+	    	eWallet = (ECO) eWalletP;
+	    	System.out.println("[" + p.getName() + "] Hooked into eWallet!");
+	    	return economyType = EconomySystemType.EWALLET;
+	    }
+	    
 	    
 	    // Check if EconXP is available
 	    Plugin econXPlugin = pm.getPlugin("EconXP");
 	    if (econXPlugin != null){
-	    	economyType = EconomySystemType.ECONXP;
 	    	econXP = (EconXP) econXPlugin;
 	    	System.out.println("[" + p.getName() + "] Hooked into EconXP!");
-	    	return EconomySystemType.ECONXP;
+	    	return economyType = EconomySystemType.ECONXP;
 	    }
 	    
 	    // Check if CurrencyCore is available
 	    Plugin currencyP = pm.getPlugin("CurrencyCore");
 	    if (currencyP != null){
-	    	economyType = EconomySystemType.CURRENCYCORE;
 	    	currencyC = (Currency) currencyP;
 	    	System.out.println("[" + p.getName() + "] Hooked into CurrencyCore!");
-	    	return EconomySystemType.ECONXP;
+	    	return economyType = EconomySystemType.CURRENCYCORE;
 	    }
 	    
 	    // Check if CraftConomy is available
 	    Plugin craftConomyP = pm.getPlugin("Craftconomy3");
 	    if (craftConomyP != null){
-	    	economyType = EconomySystemType.CRAFTCONOMY;
 	    	System.out.println("[" + p.getName() + "] Hooked into CraftConomy!");
-	    	return EconomySystemType.CRAFTCONOMY;
+	    	return economyType = EconomySystemType.CRAFTCONOMY;
 	    }
 	    
 	    // Check if AEco is available
@@ -210,8 +249,7 @@ public class EconomyManager {
 	            }
 		    	if(!error){
 			    	System.out.println("[" + p.getName() + "] Hooked into AEco!");
-			    	economyType = EconomySystemType.AECO;
-			    	return EconomySystemType.AECO;
+			    	return economyType = EconomySystemType.AECO;
 		    	}
 	    	} else {
 	    		System.out.println("[" + p.getName() + "] Waiting for AEco to enable.");
@@ -227,9 +265,8 @@ public class EconomyManager {
 	        if (economyProvider != null) {
 	            vaultEconomy = economyProvider.getProvider();
 	            if(vaultEconomy.isEnabled()) {
-	            	economyType = EconomySystemType.VAULT;
 	            	System.out.println("[" + p.getName() + "] Hooked into Vault Economy!");
-	    		    return EconomySystemType.VAULT;
+	    		    return economyType = EconomySystemType.VAULT;
 	            } else
 	            	System.out.println("[" + p.getName() + "] Not using Vault Economy, Vault Economy is disabled!");
 	        }
@@ -257,6 +294,10 @@ public class EconomyManager {
 			if (ecoSysType.equalsIgnoreCase(ecoName.getName())){
 				economyType = ecoName;
 				switch(ecoName){
+					case ESSENTIALS:
+						essConf = (Settings) ((Essentials) ecoP).getSettings();
+						break;
+						
 					case AECO:
 						try {
 							this.AEconomy = AEco.ECONOMY;
@@ -302,9 +343,23 @@ public class EconomyManager {
 			// BOSEconomy
 			return BOSEcon.getPlayerMoneyDouble(p);
 			
+		case ESSENTIALS:
+			// Essentials
+			try {
+				return com.earth2me.essentials.api.Economy.getMoney(p);
+			} catch (UserDoesNotExistException e) {
+				com.earth2me.essentials.api.Economy.createNPC(p);
+				return 0.00;
+			}
+			
 		case MINECONOMY:
 			// MineConomy
 	        return MCCom.getExternalBalance(p);
+	        
+		case EWALLET:
+			// eWallet
+			Integer eWB = eWallet.getMoney(p);
+			return (Double) (eWB == null ? 0.00 : eWB);
 	        
 		case ECONXP:
 			// EconXP
@@ -377,9 +432,28 @@ public class EconomyManager {
 			BOSEcon.addPlayerMoney(p, money, false);
 			break;
 		
+		case ESSENTIALS:
+			// Essentials
+			try {
+				com.earth2me.essentials.api.Economy.add(p, money);
+			} catch (UserDoesNotExistException e) {
+				if(com.earth2me.essentials.api.Economy.createNPC(p)){
+					return depositMoney(p, money);
+				} else 
+					return false;
+			} catch (NoLoanPermittedException e) {
+				return false;
+			}
+			break;
+			
 		case MINECONOMY:
 			// MineConomy
             MCCom.setExternalBalance(p, MCCom.getExternalBalance(p)+money);
+			break;
+			
+		case EWALLET:
+			// eWallet
+			eWallet.giveMoney(p, (int) Math.ceil(money));
 			break;
 			
 		case ECONXP:
@@ -456,11 +530,30 @@ public class EconomyManager {
 			BOSEcon.setPlayerMoney(p, newBalance, false);
 			break;
 		
+		case ESSENTIALS:
+			// Essentials
+			try {
+				com.earth2me.essentials.api.Economy.subtract(p, money);
+			} catch (UserDoesNotExistException e) {
+				if(com.earth2me.essentials.api.Economy.createNPC(p)){
+					return withdrawMoney(p, money);
+				} else 
+					return false;
+			} catch (NoLoanPermittedException e) {
+				return false;
+			}
+			break;
+			
 		case MINECONOMY:
 			// MineConomy
 			MCCom.setExternalBalance(p, MCCom.getExternalBalance(p)-money);
 			break;
 		
+		case EWALLET:
+			// eWallet
+			eWallet.takeMoney(p, (int) Math.ceil(money));
+			break;
+			
 		case ECONXP:
 			// EconXP
 			econXP.removeExp(econXP.getPlayer(p), (int)Math.ceil(money));
@@ -533,29 +626,41 @@ public class EconomyManager {
 		case BOSECONOMY:
 			// BOSEconomy
 			return BOSEcon.getMoneyNameProper(money);
+			
+		case ESSENTIALS:
+			// Essentials
+			return essConf.getCurrencySymbol();
 
 		case MINECONOMY:
 			// MineConomy
 			return MCCom.getDefaultCurrency();
 		
+		case EWALLET:
+			// eWallet
+			if(money == 1){
+				return eWallet.singularCurrency;
+			} else {
+				return eWallet.pluralCurrency;
+			}
+			
 		case ECONXP:
 			// EconXP
 			return "experience";
 			
 		case CURRENCYCORE:
 			// CurrencyCore
-			if(money > 1.00) {
-				return currencyC.getCurrencyConfig().getCurrencyMajor().get(1);
-			} else {
+			if(money == 1) {
 				return currencyC.getCurrencyConfig().getCurrencyMajor().get(0);
+			} else {
+				return currencyC.getCurrencyConfig().getCurrencyMajor().get(1);
 			}
 			
 		case CRAFTCONOMY:
 			// CraftConomy
-			if(money > 1.00) {
-				return Common.getInstance().getCurrencyManager().getCurrency(CurrencyManager.defaultCurrencyID).getPlural();
-			} else {
+			if(money == 1) {
 				return Common.getInstance().getCurrencyManager().getCurrency(CurrencyManager.defaultCurrencyID).getName();
+			} else {
+				return Common.getInstance().getCurrencyManager().getCurrency(CurrencyManager.defaultCurrencyID).getPlural();
 			}
 		
 		case AECO:
@@ -564,10 +669,10 @@ public class EconomyManager {
 			
 		case VAULT:
 			// Vault
-			if(money > 1.00) {
-				return vaultEconomy.currencyNamePlural();
-			} else {
+			if(money == 1) {
 				return vaultEconomy.currencyNameSingular();
+			} else {
+				return vaultEconomy.currencyNamePlural();
 			}
 			
 		case NONE:
