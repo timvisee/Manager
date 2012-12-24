@@ -2,6 +2,7 @@ package com.timvisee.manager.economymanager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -329,11 +330,31 @@ public class EconomyManager {
 						} catch (SecurityException e) {
 			            } catch (NoSuchMethodException e) {}
 						break;
+					default:
+						break;
 				}
 				System.out.println("[" + this.p.getName() + "] Hooked into " + ecoP.getName() + "!");
 				break;
 			}
 		}		
+	}
+	
+	/**
+	 * Get the money balance of a player
+	 * @param p player
+	 * @return money balance
+	 */
+	public double getBalance(Player p) {
+		return getBalance(p.getName(), 0.00);
+	}
+	
+	/**
+	 * Get the money balance of a player
+	 * @param p player
+	 * @return money balance
+	 */
+	public double getBalance(Player p, double def) {
+		return getBalance(p.getName(), def);
 	}
 	
 	/**
@@ -417,6 +438,17 @@ public class EconomyManager {
 		}
 	}
 	
+	
+	/**
+	 * Check if a player has enough money balance to pay something
+	 * @param p player
+	 * @param price price to pay
+	 * @return true if the player has enough money
+	 */
+	public boolean hasEnoughMoney(Player p, double price) {
+		return hasEnoughMoney(p.getName(), price);
+	}
+	
 	/**
 	 * Check if a player has enough money balance to pay something
 	 * @param p player name
@@ -426,6 +458,16 @@ public class EconomyManager {
 	public boolean hasEnoughMoney(String p, double price) {
 		double balance = getBalance(p);
 		return (balance >= price);
+	}
+	
+	/**
+	 * Deposit money to a player
+	 * @param p player
+	 * @param money money amount
+	 * @return false when something was wrong
+	 */
+	public boolean depositMoney(Player p, double money) {
+		return depositMoney(p.getName(), money);
 	}
 	
 	/**
@@ -518,6 +560,16 @@ public class EconomyManager {
 		}
 		
 		return true;
+	}
+	
+	/**
+	 * Withdraw money from a player
+	 * @param p player
+	 * @param money money amount
+	 * @return false when something was wrong
+	 */
+	public boolean withdrawMoney(Player p, double money) {
+		return withdrawMoney(p.getName(), money);
 	}
 	
 	/**
